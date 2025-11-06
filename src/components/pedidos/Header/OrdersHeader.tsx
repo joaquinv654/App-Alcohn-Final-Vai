@@ -1,12 +1,14 @@
 import { Search, Filter, ArrowUpDown, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { StateChips } from './StateChips';
+// import { StateChips } from './StateChips'; // StateChips no se usa aquí
 import { useOrdersStore } from '@/lib/state/orders.store';
-import { mockOrders, getFabricationCounts } from '@/lib/mocks/orders.mock';
-import { FabricationState } from '@/lib/types/index';
+// import { mockOrders, getFabricationCounts } from '@/lib/mocks/orders.mock'; // <-- Eliminado
+import { FabricationState, Order } from '@/lib/types/index'; // <-- Importar Order
+import { useMemo } from 'react'; // <-- Importar useMemo
 
 interface OrdersHeaderProps {
+  orders: Order[]; // <-- 1. Aceptar pedidos reales como prop
   onNewOrder: () => void;
   onFilters: () => void;
   onSort: () => void;
@@ -14,7 +16,32 @@ interface OrdersHeaderProps {
   activeStates: FabricationState[];
 }
 
+// 2. Mover la lógica de conteo aquí, usando las props
+const getFabricationCounts = (orders: Order[]) => {
+  const counts: Record<FabricationState, number> = {
+    'SIN_HACER': 0,
+    'HACIENDO': 0,
+    'VERIFICAR': 0,
+    'HECHO': 0,
+    'REHACER': 0,
+    'RETOCAR': 0
+  };
+
+  orders.forEach(order => {
+    order.items.forEach(item => {
+      // Asegurarse de que el estado es válido antes de incrementar
+      if (item.fabricationState in counts) {
+        counts[item.fabricationState]++;
+      }
+    });
+  });
+
+  return counts;
+};
+
+
 export function OrdersHeader({ 
+  orders, // <-- 3. Usar la prop
   onNewOrder, 
   onFilters, 
   onSort, 
@@ -23,7 +50,9 @@ export function OrdersHeader({
 }: OrdersHeaderProps) {
   const { searchQuery, setSearchQuery } = useOrdersStore();
   
-  const activeOrdersCount = mockOrders.length;
+  // 4. Calcular contadores usando los pedidos reales
+  const activeOrdersCount = orders.length;
+  const fabricationCounts = useMemo(() => getFabricationCounts(orders), [orders]);
 
   return (
     <div className="space-y-4">
@@ -34,7 +63,8 @@ export function OrdersHeader({
             Pedidos
           </h1>
           <p className="text-xs text-gray-400">
-            Total: {activeOrdersCount} • Sin hacer: {getFabricationCounts(mockOrders)['SIN_HACER']} • Hecho: {getFabricationCounts(mockOrders)['HECHO']}
+            {/* 5. Usar los contadores reales */}
+            Total: {activeOrdersCount} • Sin hacer: {fabricationCounts['SIN_HACER']} • Hecho: {fabricationCounts['HECHO']}
           </p>
         </div>
         
