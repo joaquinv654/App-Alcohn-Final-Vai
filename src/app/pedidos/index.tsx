@@ -230,6 +230,7 @@ export default function PedidosPage() {
       <div className="flex-1 flex flex-col ml-20">
         <div className="border-b bg-background p-6">
           <OrdersHeader
+            orders={orders} // <-- ¡CORRECCIÓN AÑADIDA!
             onNewOrder={() => setShowNewOrder(true)}
             onFilters={() => setShowFilters(true)}
             onSort={() => setShowSorter(true)}
